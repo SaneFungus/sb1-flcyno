@@ -35,6 +35,13 @@ function generateUserPrompt(emotions) {
     return `${emotion.translation} (${e.intensity}/10) = ${variant.translation}`;
   }).join(' + ');
 
+  const emotionRequirements = emotions.map(e => {
+    const emotion = primaryEmotions[e.code];
+    const level = getIntensityLevel(e.intensity);
+    const variant = emotion.variants[level];
+    return `- ${emotion.translation} (${level}): musi być widoczna w fizycznych reakcjach i kontekście na poziomie ${variant.translation}`;
+  }).join('\n');
+
   return `Przeanalizuj poniższy złożony stan emocjonalny.
 
 KOD: ${cseCode}
@@ -43,52 +50,72 @@ KOMBINACJA: ${emotionsList}
 WYMAGANY FORMAT ODPOWIEDZI:
 
 1. NAZWA ZŁOŻONEJ EMOCJI
-[Wybierz jedną opcję i podaj maksymalnie 2 krótkie zdania wyjaśnienia:]
-a) Polski termin: [słowo] - [krótkie wyjaśnienie BEZ NAZYWANIA EMOCJI]
-b) Termin z innego języka: [słowo] ([język]) - [tłumaczenie] - [krótkie wyjaśnienie BEZ NAZYWANIA EMOCJI]
-c) Neologizm: [nowe słowo] - [krótkie wyjaśnienie konstrukcji BEZ NAZYWANIA EMOCJI]
+[Wybierz JEDNĄ opcję. Max 12 słów wyjaśnienia:]
+a) Polski termin: [istniejące słowo] - [zwięzły opis stanu BEZ NAZYWANIA EMOCJI]
+b) Termin z innego języka: [krótkie słowo] ([język]) - [tłumaczenie] - [zwięzły opis stanu BEZ NAZYWANIA EMOCJI]
+c) Neologizm: [proste, max 3-sylabowe słowo] - [zwięzły opis stanu BEZ NAZYWANIA EMOCJI]
 
 2. SYTUACJA WYWOŁUJĄCA
-[Opisz JEDEN KONKRETNY MOMENT, nie sekwencję zdarzeń. Wszystkie emocje muszą występować dokładnie w tej samej chwili.]
+[Opisz REALNĄ sytuację z CODZIENNEGO życia. Każda emocja musi być widoczna w odpowiednim natężeniu.]
 
-Akapit 1: Opis miejsca i okoliczności (max 3 zdania)
-Akapit 2: Opis kulminacyjnego momentu, w którym wszystkie emocje występują jednocześnie (max 3 zdania)
+Akapit 1: [max 3 zdania]
+- Miejsce: konkretna, codzienna lokalizacja
+- Czas: konkretna pora dnia
+- Kontekst: zwyczajna sytuacja życiowa
+- Źródło każdej z emocji musi być jasno widoczne
 
-OGRANICZENIA:
-- ZAKAZ używania słów opisujących emocje
-- ZAKAZ opisywania sekwencji zdarzeń - skup się na JEDNYM momencie
-- Użyj neutralnych płciowo określeń (np. "osoba", "człowiek")
-- Sytuacja musi być uniwersalna - każdy może się w niej znaleźć
-- Opisuj tylko konkretne działania, reakcje fizyczne i okoliczności
-- Wszystkie emocje MUSZĄ występować JEDNOCZEŚNIE, nie jedna po drugiej`;
+Akapit 2: [max 3 zdania]
+- Fizyczne przejawy KAŻDEJ z emocji
+- Reakcje odpowiadające poziomowi intensywności
+- Konkretne szczegóły z otoczenia
+- Wyłącznie realne elementy sytuacji
+
+WYMAGANE ELEMENTY DLA KAŻDEJ EMOCJI:
+${emotionRequirements}
+
+ZABRONIONE:
+- Fantastyczne lub nierealistyczne elementy
+- Słowa opisujące emocje lub stany psychiczne
+- Metafory i porównania
+- Sekwencje zdarzeń
+- Wewnętrzne monologi
+- Określenia oceniające
+
+WYMAGANE:
+- Codzienna, rzeczywista sytuacja
+- Konkretne fizyczne szczegóły
+- Uniwersalne doświadczenie
+- Neutralność płciowa
+- Jednoczesność wszystkich emocji
+- Wyraźne pokazanie intensywności każdej emocji`;
 }
 
 export async function analyzeEmotions(emotions) {
   try {
-    const systemPrompt = `Jesteś ekspertem łączącym trzy role:
+    const systemPrompt = `Jesteś ekspertem tworzącym opisy złożonych stanów emocjonalnych dla CODZIENNYCH sytuacji życiowych.
 
-1. LINGWISTA-ANTROPOLOG
-- Znajdujesz lub tworzysz precyzyjne nazwy dla złożonych stanów emocjonalnych
-- Unikasz rozwlekłych wyjaśnień etymologicznych
-- Koncentrujesz się na obrazowym opisie znaczenia
+TWOJE KOMPETENCJE:
+1. Znajdowanie prostych nazw dla skomplikowanych stanów
+2. Tworzenie realistycznych scenariuszy z życia
+3. Opisywanie fizycznych reakcji i szczegółów
 
-2. EKSPERT OD KOŁA PLUTCHIKA
-- Specjalizujesz się w stanach, gdzie kilka emocji występuje JEDNOCZEŚNIE
-- Potrafisz określić, czy dana kombinacja może wystąpić w jednym momencie
-- Jeśli kombinacja nie może wystąpić jednocześnie, modyfikujesz zadanie
+TWOJE PRIORYTETY:
+1. Realizm sytuacji
+2. Uniwersalność doświadczenia
+3. Konkretność szczegółów
+4. Prostota języka
 
-3. MISTRZ ZWIĘZŁEGO OPISU
-- Tworzysz uniwersalne, neutralne płciowo scenariusze
-- Skupiasz się na jednym konkretnym momencie
-- Opisujesz sytuacje przez pryzmat działań i reakcji fizycznych
+TWÓJ STYL:
+1. Używasz prostych, krótkich zdań
+2. Skupiasz się na fizycznych szczegółach
+3. Opisujesz konkretne działania
+4. Unikasz abstrakcji i metafor
 
 NAJWAŻNIEJSZE ZASADY:
-1. Nie używaj słów nazywających emocje
-2. Skupiaj się na JEDNYM momencie, nie na sekwencji zdarzeń
-3. Wszystkie emocje muszą występować JEDNOCZEŚNIE
-4. Twórz opisy uniwersalne - każdy może się w nich znaleźć
-5. Używaj konkretnych, fizycznych szczegółów
-6. Bądź zwięzły i precyzyjny`;
+1. Każda sytuacja MUSI być z codziennego życia
+2. Wszystkie emocje występują JEDNOCZEŚNIE
+3. Zero fantastyki i nierealnych elementów
+4. Żadnych słów opisujących emocje`;
 
     const userPrompt = generateUserPrompt(emotions);
 
