@@ -7,16 +7,11 @@ const openai = new OpenAI({
 });
 
 export function generateCSECode(emotions) {
-  const emotionCodes = emotions
-    .map(e => e.code)
-    .sort()
-    .join('.');
-    
+  const emotionCodes = emotions.map(e => e.code).sort().join('.');
   const intensities = emotions
     .sort((a, b) => a.code.localeCompare(b.code))
     .map(e => getIntensityLevel(e.intensity))
     .join('.');
-    
   return `CSE-[${emotionCodes}]-[${intensities}]-001`;
 }
 
@@ -25,6 +20,50 @@ function getIntensityLevel(value) {
   if (value <= 7) return 'M';
   return 'H';
 }
+
+// Stałe reakcje fizyczne dla każdej emocji i poziomu
+const PHYSICAL_REACTIONS = {
+  'DI': {
+    'L': 'lekkie zmarszczenie nosa',
+    'M': 'wyraźne zmarszczenie nosa, lekko uniesiona górna warga',
+    'H': 'silne zmarszczenie nosa, uniesiona górna warga, cofnięcie głowy'
+  },
+  'FE': {
+    'L': 'lekkie napięcie ramion, delikatnie rozszerzone oczy',
+    'M': 'napięte ramiona, rozszerzone oczy, przyspieszony oddech',
+    'H': 'bardzo napięte mięśnie, mocno rozszerzone oczy, płytki oddech'
+  },
+  'JO': {
+    'L': 'lekki uśmiech, rozluźnione ramiona',
+    'M': 'wyraźny uśmiech, wyprostowana postawa',
+    'H': 'szeroki uśmiech, wyprostowana postawa, żywa gestykulacja'
+  },
+  'AG': {
+    'L': 'lekko zaciśnięte szczęki, napięte dłonie',
+    'M': 'zaciśnięte szczęki, napięte dłonie, szybszy oddech',
+    'H': 'mocno zaciśnięte szczęki, bardzo napięte dłonie, gwałtowny oddech'
+  },
+  'TR': {
+    'L': 'lekko rozluźnione ramiona, spokojny oddech',
+    'M': 'rozluźnione ramiona, otwarty wyraz twarzy',
+    'H': 'całkowicie rozluźnione ciało, bardzo otwarty wyraz twarzy'
+  },
+  'SA': {
+    'L': 'lekko opuszczone kąciki ust, spowolnione ruchy',
+    'M': 'opuszczone kąciki ust, wyraźnie spowolnione ruchy',
+    'H': 'mocno opuszczone kąciki ust, bardzo spowolnione ruchy, pochylone ramiona'
+  },
+  'AN': {
+    'L': 'lekko pochylona głowa, skupione spojrzenie',
+    'M': 'pochylona głowa, wyraźnie skupione spojrzenie, lekko napięte mięśnie',
+    'H': 'mocno pochylona głowa, intensywnie skupione spojrzenie, napięte mięśnie'
+  },
+  'SU': {
+    'L': 'lekko uniesione brwi, delikatnie rozwarte usta',
+    'M': 'uniesione brwi, rozwarte usta, lekko cofnięta głowa',
+    'H': 'wysoko uniesione brwi, szeroko rozwarte usta, wyraźnie cofnięta głowa'
+  }
+};
 
 function generateUserPrompt(emotions) {
   const cseCode = generateCSECode(emotions);
@@ -35,101 +74,49 @@ function generateUserPrompt(emotions) {
     return `${emotion.translation} (${e.intensity}/10) = ${variant.translation}`;
   }).join(' + ');
 
-  const emotionRequirements = emotions.map(e => {
-    const emotion = primaryEmotions[e.code];
+  const requiredReactions = emotions.map(e => {
     const level = getIntensityLevel(e.intensity);
-    const variant = emotion.variants[level];
-    return `- ${emotion.translation} (${level}): musi być widoczna w fizycznych reakcjach i kontekście na poziomie ${variant.translation}`;
+    return `${e.code}.${level}: ${PHYSICAL_REACTIONS[e.code][level]}`;
   }).join('\n');
 
-  return `Przeanalizuj poniższy złożony stan emocjonalny.
+  return `KOD: ${cseCode}
+EMOCJE: ${emotionsList}
 
-KOD: ${cseCode}
-KOMBINACJA: ${emotionsList}
+FORMAT ODPOWIEDZI:
 
-WYMAGANY FORMAT ODPOWIEDZI:
+1. NAZWA
+[Polski termin/Termin obcy/Neologizm] - [max 8 słów opisu, bez nazywania emocji]
 
-1. NAZWA ZŁOŻONEJ EMOCJI
-[Wybierz JEDNĄ opcję. Max 12 słów wyjaśnienia:]
-a) Polski termin: [istniejące słowo] - [zwięzły opis stanu BEZ NAZYWANIA EMOCJI]
-b) Termin z innego języka: [krótkie słowo] ([język]) - [tłumaczenie] - [zwięzły opis stanu BEZ NAZYWANIA EMOCJI]
-c) Neologizm: [proste, max 3-sylabowe słowo] - [zwięzły opis stanu BEZ NAZYWANIA EMOCJI]
+2. SYTUACJA
+A1: [Miejsce, czas, kontekst codzienny, max 2 zdania]
+A2: [Tylko podane reakcje fizyczne + szczegóły otoczenia, max 2 zdania]
 
-2. SYTUACJA WYWOŁUJĄCA
-[Opisz REALNĄ sytuację z CODZIENNEGO życia. Każda emocja musi być widoczna w odpowiednim natężeniu.]
+WYMAGANE REAKCJE:
+${requiredReactions}
 
-Akapit 1: [max 3 zdania]
-- Miejsce: konkretna, codzienna lokalizacja
-- Czas: konkretna pora dnia
-- Kontekst: zwyczajna sytuacja życiowa
-- Źródło każdej z emocji musi być jasno widoczne
-
-Akapit 2: [max 3 zdania]
-- Fizyczne przejawy KAŻDEJ z emocji
-- Reakcje odpowiadające poziomowi intensywności
-- Konkretne szczegóły z otoczenia
-- Wyłącznie realne elementy sytuacji
-
-WYMAGANE ELEMENTY DLA KAŻDEJ EMOCJI:
-${emotionRequirements}
-
-ZABRONIONE:
-- Fantastyczne lub nierealistyczne elementy
-- Słowa opisujące emocje lub stany psychiczne
-- Metafory i porównania
-- Sekwencje zdarzeń
-- Wewnętrzne monologi
-- Określenia oceniające
-
-WYMAGANE:
-- Codzienna, rzeczywista sytuacja
-- Konkretne fizyczne szczegóły
-- Uniwersalne doświadczenie
-- Neutralność płciowa
-- Jednoczesność wszystkich emocji
-- Wyraźne pokazanie intensywności każdej emocji`;
+ZASADY:
+- Tylko wymienione reakcje fizyczne
+- Narracja w 3. osobie
+- Bez emocji w opisie
+- Codzienna sytuacja
+- Wszystko dzieje się jednocześnie`;
 }
 
 export async function analyzeEmotions(emotions) {
   try {
-    const systemPrompt = `Jesteś ekspertem tworzącym opisy złożonych stanów emocjonalnych dla CODZIENNYCH sytuacji życiowych.
-
-TWOJE KOMPETENCJE:
-1. Znajdowanie prostych nazw dla skomplikowanych stanów
-2. Tworzenie realistycznych scenariuszy z życia
-3. Opisywanie fizycznych reakcji i szczegółów
-
-TWOJE PRIORYTETY:
-1. Realizm sytuacji
-2. Uniwersalność doświadczenia
-3. Konkretność szczegółów
-4. Prostota języka
-
-TWÓJ STYL:
-1. Używasz prostych, krótkich zdań
-2. Skupiasz się na fizycznych szczegółach
-3. Opisujesz konkretne działania
-4. Unikasz abstrakcji i metafor
-
-NAJWAŻNIEJSZE ZASADY:
-1. Każda sytuacja MUSI być z codziennego życia
-2. Wszystkie emocje występują JEDNOCZEŚNIE
-3. Zero fantastyki i nierealnych elementów
-4. Żadnych słów opisujących emocje`;
+    const systemPrompt = `Jesteś ekspertem od analizy emocji. Tworzysz opisy:
+- Używając tylko podanych reakcji fizycznych
+- Bez słów opisujących emocje
+- W kontekście codziennych sytuacji
+- Z perspektywy obserwatora`;
 
     const userPrompt = generateUserPrompt(emotions);
 
     const response = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
-        {
-          role: "system",
-          content: systemPrompt
-        },
-        {
-          role: "user",
-          content: userPrompt
-        }
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
       ],
       temperature: 0.7,
       max_tokens: 500
