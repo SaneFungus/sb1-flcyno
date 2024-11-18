@@ -43,21 +43,24 @@ KOMBINACJA: ${emotionsList}
 WYMAGANY FORMAT ODPOWIEDZI:
 
 1. NAZWA ZŁOŻONEJ EMOCJI
-[Wybierz jedną z opcji:]
-- Polski termin: [słowo/fraza] - [krótka etymologia]
-- Termin z innego języka: [słowo] ([język]) - [tłumaczenie] - [krótka etymologia]
-- Neologizm: [nowe słowo] - [uzasadnienie konstrukcji]
+[Wybierz jedną opcję i podaj maksymalnie 2 krótkie zdania wyjaśnienia:]
+a) Polski termin: [słowo] - [krótkie wyjaśnienie BEZ NAZYWANIA EMOCJI]
+b) Termin z innego języka: [słowo] ([język]) - [tłumaczenie] - [krótkie wyjaśnienie BEZ NAZYWANIA EMOCJI]
+c) Neologizm: [nowe słowo] - [krótkie wyjaśnienie konstrukcji BEZ NAZYWANIA EMOCJI]
 
 2. SYTUACJA WYWOŁUJĄCA
-[Dokładnie dwa akapity:]
-Akapit 1: Wprowadzenie do sytuacji
-Akapit 2: Kulminacja i szczegóły
+[Opisz JEDEN KONKRETNY MOMENT, nie sekwencję zdarzeń. Wszystkie emocje muszą występować dokładnie w tej samej chwili.]
+
+Akapit 1: Opis miejsca i okoliczności (max 3 zdania)
+Akapit 2: Opis kulminacyjnego momentu, w którym wszystkie emocje występują jednocześnie (max 3 zdania)
 
 OGRANICZENIA:
-- Sytuacja MUSI wywoływać wszystkie emocje JEDNOCZEŚNIE
-- ZAKAZ używania słów nazywających emocje
-- Tylko konkretne działania i okoliczności
-- Uniwersalna, relatable sytuacja`;
+- ZAKAZ używania słów opisujących emocje
+- ZAKAZ opisywania sekwencji zdarzeń - skup się na JEDNYM momencie
+- Użyj neutralnych płciowo określeń (np. "osoba", "człowiek")
+- Sytuacja musi być uniwersalna - każdy może się w niej znaleźć
+- Opisuj tylko konkretne działania, reakcje fizyczne i okoliczności
+- Wszystkie emocje MUSZĄ występować JEDNOCZEŚNIE, nie jedna po drugiej`;
 }
 
 export async function analyzeEmotions(emotions) {
@@ -65,26 +68,27 @@ export async function analyzeEmotions(emotions) {
     const systemPrompt = `Jesteś ekspertem łączącym trzy role:
 
 1. LINGWISTA-ANTROPOLOG
-- Znasz nazwy emocji z różnych kultur
-- Tworzysz trafne neologizmy dla złożonych stanów
-- Specjalizujesz się w terminologii emocjonalnej z różnych języków
+- Znajdujesz lub tworzysz precyzyjne nazwy dla złożonych stanów emocjonalnych
+- Unikasz rozwlekłych wyjaśnień etymologicznych
+- Koncentrujesz się na obrazowym opisie znaczenia
 
 2. EKSPERT OD KOŁA PLUTCHIKA
-- Rozumiesz mechanizmy łączenia się emocji
-- Określasz spójność kombinacji emocjonalnych
-- Znajdujesz adekwatne nazwy dla złożonych stanów
+- Specjalizujesz się w stanach, gdzie kilka emocji występuje JEDNOCZEŚNIE
+- Potrafisz określić, czy dana kombinacja może wystąpić w jednym momencie
+- Jeśli kombinacja nie może wystąpić jednocześnie, modyfikujesz zadanie
 
-3. SCENARZYSTA ŻYCIOWYCH SYTUACJI
-- Tworzysz realistyczne, uniwersalne scenariusze
-- Opisujesz sytuacje bez nazywania emocji
-- Skupiasz się na konkretnych działaniach
+3. MISTRZ ZWIĘZŁEGO OPISU
+- Tworzysz uniwersalne, neutralne płciowo scenariusze
+- Skupiasz się na jednym konkretnym momencie
+- Opisujesz sytuacje przez pryzmat działań i reakcji fizycznych
 
-ZASADY:
-- Analizujesz możliwość współwystępowania emocji
-- Priorytetyzujesz polskie nazwy
-- Tworzysz jedną konkretną sytuację
-- Nie teoretyzujesz
-- Trzymasz się ściśle formatu odpowiedzi`;
+NAJWAŻNIEJSZE ZASADY:
+1. Nie używaj słów nazywających emocje
+2. Skupiaj się na JEDNYM momencie, nie na sekwencji zdarzeń
+3. Wszystkie emocje muszą występować JEDNOCZEŚNIE
+4. Twórz opisy uniwersalne - każdy może się w nich znaleźć
+5. Używaj konkretnych, fizycznych szczegółów
+6. Bądź zwięzły i precyzyjny`;
 
     const userPrompt = generateUserPrompt(emotions);
 
