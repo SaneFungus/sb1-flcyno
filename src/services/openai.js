@@ -35,88 +35,56 @@ function generateUserPrompt(emotions) {
     return `${emotion.translation} (${e.intensity}/10) = ${variant.translation}`;
   }).join(' + ');
 
-  return `Jesteś doświadczonym trenerem aktorów specjalizującym się w pracy z emocjami. Przeanalizuj poniższy złożony stan emocjonalny, skupiając się na praktycznych wskazówkach do pracy aktorskiej. Użyj podanego formatu.
+  return `Przeanalizuj poniższy złożony stan emocjonalny.
 
-# ${cseCode}
+KOD: ${cseCode}
+KOMBINACJA: ${emotionsList}
 
-## Polskie tłumaczenie
-${emotionsList}
+WYMAGANY FORMAT ODPOWIEDZI:
 
-## Esencja stanu
-[Opisz w 2-3 zdaniach esencję tego stanu emocjonalnego, jego dynamikę i główną charakterystykę. Użyj języka zrozumiałego dla aktora.]
+1. NAZWA ZŁOŻONEJ EMOCJI
+[Wybierz jedną z opcji:]
+- Polski termin: [słowo/fraza] - [krótka etymologia]
+- Termin z innego języka: [słowo] ([język]) - [tłumaczenie] - [krótka etymologia]
+- Neologizm: [nowe słowo] - [uzasadnienie konstrukcji]
 
-## Główne cechy do zagrania
-### Ciało
-[Lista 5-6 konkretnych wskazówek dotyczących:
-- postawy ciała
-- napięcia mięśniowego
-- charakterystycznych gestów
-- sposobu poruszania się
-- pozycji rąk i nóg]
+2. SYTUACJA WYWOŁUJĄCA
+[Dokładnie dwa akapity:]
+Akapit 1: Wprowadzenie do sytuacji
+Akapit 2: Kulminacja i szczegóły
 
-### Twarz
-[Lista 4-5 szczegółowych wskazówek dotyczących:
-- wyrazu oczu
-- układu ust
-- napięcia szczęki
-- zmarszczek i brwi
-- ogólnego wyrazu twarzy]
-
-### Głos
-[Lista 5-6 konkretnych wskazówek dotyczących:
-- barwy głosu
-- tempa mówienia
-- rytmu wypowiedzi
-- charakterystycznych pauz
-- natężenia głosu
-- specyficznych cech wypowiedzi]
-
-## Porównania sceniczne
-[Wymień 4 konkretne sceny z filmów lub sztuk teatralnych gdzie pojawia się podobny stan emocjonalny. Dla każdej sceny podaj:
-- tytuł dzieła
-- nazwisko aktora/aktorki
-- krótki opis momentu
-- co szczególnie warto zaobserwować]
-
-## Przykłady scen do zagrania
-[Opisz 4 różne sceny, które aktor może wykorzystać do ćwiczenia tego stanu emocjonalnego. Dla każdej sceny podaj:
-- sytuację początkową
-- kontekst
-- możliwy rozwój sceny
-- punkt kulminacyjny]
-
-## Wskazówki do improwizacji
-### Krok 1: Przygotowanie fizyczne
-[3-4 konkretne ćwiczenia rozgrzewające ciało pod kątem tego stanu emocjonalnego, z opisem jak je wykonać]
-
-### Krok 2: Przygotowanie głosowe
-[3-4 konkretne ćwiczenia rozgrzewające głos, z opisem jak je wykonać]
-
-### Krok 3: Budowanie stanu
-[4-5 kroków jak stopniowo budować ten stan emocjonalny, zaczynając od najprostszych elementów]
-
-### Krok 4: Rozwijanie improwizacji
-[4-5 konkretnych wskazówek jak rozwijać i pogłębiać stan w trakcie improwizacji]
-
-### Krok 5: Bezpieczne wyjście
-[3-4 konkretne techniki pozwalające bezpiecznie wyjść ze stanu po zakończeniu improwizacji]`;
+OGRANICZENIA:
+- Sytuacja MUSI wywoływać wszystkie emocje JEDNOCZEŚNIE
+- ZAKAZ używania słów nazywających emocje
+- Tylko konkretne działania i okoliczności
+- Uniwersalna, relatable sytuacja`;
 }
 
 export async function analyzeEmotions(emotions) {
   try {
-    const systemPrompt = `Jesteś doświadczonym coachem aktorskim specjalizującym się w pracy z emocjami. 
-Twoje odpowiedzi są zawsze:
-- Konkretne i praktyczne
-- Oparte na fizycznych aspektach aktorstwa
-- Napisane językiem zrozumiałym dla aktora
-- Możliwe do zastosowania w praktyce
-- Bezpieczne dla zdrowia psychicznego aktora
+    const systemPrompt = `Jesteś ekspertem łączącym trzy role:
 
-Unikaj:
-- Ogólników i teoretyzowania
-- Zbyt technicznych terminów psychologicznych
-- Niebezpiecznych lub szkodliwych technik
-- Wskazówek niemożliwych do wykonania fizycznie`;
+1. LINGWISTA-ANTROPOLOG
+- Znasz nazwy emocji z różnych kultur
+- Tworzysz trafne neologizmy dla złożonych stanów
+- Specjalizujesz się w terminologii emocjonalnej z różnych języków
+
+2. EKSPERT OD KOŁA PLUTCHIKA
+- Rozumiesz mechanizmy łączenia się emocji
+- Określasz spójność kombinacji emocjonalnych
+- Znajdujesz adekwatne nazwy dla złożonych stanów
+
+3. SCENARZYSTA ŻYCIOWYCH SYTUACJI
+- Tworzysz realistyczne, uniwersalne scenariusze
+- Opisujesz sytuacje bez nazywania emocji
+- Skupiasz się na konkretnych działaniach
+
+ZASADY:
+- Analizujesz możliwość współwystępowania emocji
+- Priorytetyzujesz polskie nazwy
+- Tworzysz jedną konkretną sytuację
+- Nie teoretyzujesz
+- Trzymasz się ściśle formatu odpowiedzi`;
 
     const userPrompt = generateUserPrompt(emotions);
 
@@ -133,7 +101,7 @@ Unikaj:
         }
       ],
       temperature: 0.7,
-      max_tokens: 2000
+      max_tokens: 500
     });
 
     return response.choices[0].message.content;
