@@ -4,6 +4,11 @@ import EmotionSlider from './EmotionSlider';
 import { analyzeEmotions } from '../services/openai';
 import { generateCSECode } from '../services/openai';
 
+// Funkcja "Analizuj" (GPT-4) wymaga klucza OpenAI wbudowanego w kod przeglądarki.
+// Na buildach bez ustawionego klucza (np. GitHub Pages) ukrywamy ją całkowicie,
+// żeby nigdy nie publikować pustego/martwego klucza ani nie kusić do wklejenia go tu na sztywno.
+const AI_ENABLED = Boolean(import.meta.env.VITE_OPENAI_API_KEY);
+
 const EmotionMixer = () => {
   const [power, setPower] = useState(false);
   const [selectedEmotions, setSelectedEmotions] = useState([]);
@@ -11,7 +16,7 @@ const EmotionMixer = () => {
   const [activeButton, setActiveButton] = useState(null);
   const [analysis, setAnalysis] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  
+
   const emotions = [
     { name: 'Joy', plName: 'Radość', code: 'JO', color: '#FFD700' },
     { name: 'Trust', plName: 'Zaufanie', code: 'TR', color: '#4CAF50' },
@@ -47,11 +52,11 @@ const EmotionMixer = () => {
   const generateRandomEmotions = (count) => {
     setSelectedEmotions([]);
     setEmotionValues({});
-    
+
     const shuffled = [...emotions]
       .sort(() => Math.random() - 0.5)
       .slice(0, count);
-    
+
     const newEmotions = shuffled.map(emotion => emotion.name);
     const newValues = Object.fromEntries(
       shuffled.map(emotion => [
@@ -59,7 +64,7 @@ const EmotionMixer = () => {
         Math.floor(Math.random() * 10) + 1
       ])
     );
-    
+
     setSelectedEmotions(newEmotions);
     setEmotionValues(newValues);
   };
@@ -101,11 +106,11 @@ const EmotionMixer = () => {
     const emotionsData = getEmotionsData();
     const cseCode = generateCSECode(emotionsData);
     const fileName = `${cseCode}.txt`;
-    
+
     const content = `${cseCode}\n\n${analysis}`;
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = fileName;
@@ -123,8 +128,8 @@ const EmotionMixer = () => {
             <button
               onClick={() => setPower(!power)}
               className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
-                power 
-                  ? 'bg-red-500 shadow-lg shadow-red-500/50 hover:bg-red-600' 
+                power
+                  ? 'bg-red-500 shadow-lg shadow-red-500/50 hover:bg-red-600'
                   : 'bg-gray-700 hover:bg-gray-600'
               }`}
             >
@@ -149,8 +154,8 @@ const EmotionMixer = () => {
                     activeButton === count ? 'shadow-xl shadow-blue-500/20 text-white' : 'text-gray-300'
                   }`}
                   style={{
-                    boxShadow: activeButton === count 
-                      ? '0 0 20px rgba(59, 130, 246, 0.4)' 
+                    boxShadow: activeButton === count
+                      ? '0 0 20px rgba(59, 130, 246, 0.4)'
                       : undefined
                   }}
                 >
@@ -161,22 +166,22 @@ const EmotionMixer = () => {
                 </button>
               ))}
             </div>
-            
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4 p-3 sm:p-4 bg-black/80 rounded-lg border border-gray-800 shadow-inner">
               {emotions.map(({ name, plName, color, code }) => (
                 <button
                   key={name}
                   onClick={() => handleEmotionSelect(name)}
                   className={`p-2 sm:p-3 rounded-lg transition-all bg-gradient-to-b from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 ${
-                    selectedEmotions.includes(name) 
-                      ? 'shadow-xl shadow-blue-500/20 text-white' 
+                    selectedEmotions.includes(name)
+                      ? 'shadow-xl shadow-blue-500/20 text-white'
                       : 'text-gray-300'
                   }`}
-                  style={{ 
+                  style={{
                     borderLeft: `4px solid ${selectedEmotions.includes(name) ? color : 'transparent'}`,
                     opacity: selectedEmotions.includes(name) || selectedEmotions.length < 3 ? 1 : 0.5,
-                    boxShadow: selectedEmotions.includes(name) 
-                      ? '0 0 20px rgba(59, 130, 246, 0.4)' 
+                    boxShadow: selectedEmotions.includes(name)
+                      ? '0 0 20px rgba(59, 130, 246, 0.4)'
                       : undefined
                   }}
                 >
@@ -206,22 +211,24 @@ const EmotionMixer = () => {
                     {getCurrentCSECode()}
                   </span>
                 </div>
-                <button
-                  onClick={handleAnalyze}
-                  disabled={isAnalyzing || selectedEmotions.length === 0}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-b from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 rounded-lg transition-all shadow-lg border border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isAnalyzing ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Send className="w-4 h-4" />
-                  )}
-                  <span>Analizuj</span>
-                </button>
+                {AI_ENABLED && (
+                  <button
+                    onClick={handleAnalyze}
+                    disabled={isAnalyzing || selectedEmotions.length === 0}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-b from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 rounded-lg transition-all shadow-lg border border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isAnalyzing ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
+                    <span>Analizuj</span>
+                  </button>
+                )}
               </div>
             </div>
 
-            {analysis && (
+            {AI_ENABLED && analysis && (
               <div className="bg-black/80 rounded-lg p-4 border border-gray-800 shadow-inner">
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="text-lg font-bold">Analiza ChatGPT:</h3>
