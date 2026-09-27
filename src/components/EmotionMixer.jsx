@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Activity, Shuffle, Power, Send, Loader2, Download } from 'lucide-react';
 import EmotionSlider from './EmotionSlider';
 import { analyzeEmotions } from '../services/openai';
-import { generateCSECode } from '../services/openai';
+import { generateCSECode, buildArchiveEntry } from '../services/prompt';
 
 // Funkcja "Analizuj" (GPT-4) wymaga klucza OpenAI wbudowanego w kod przeglądarki.
 // Na buildach bez ustawionego klucza (np. GitHub Pages) ukrywamy ją całkowicie,
@@ -15,6 +15,9 @@ const EmotionMixer = () => {
   const [emotionValues, setEmotionValues] = useState({});
   const [activeButton, setActiveButton] = useState(null);
   const [analysis, setAnalysis] = useState('');
+  // Mieszanka i czas, dla których AI napisało tekst — archiwum zapisuje te
+  // wartości, a nie aktualne suwaki (mogły się zmienić po analizie).
+  const [analyzedInput, setAnalyzedInput] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const emotions = [
@@ -90,25 +93,26 @@ const EmotionMixer = () => {
     setIsAnalyzing(true);
     try {
       const emotionsData = getEmotionsData();
+      const date = new Date();
       const result = await analyzeEmotions(emotionsData);
       setAnalysis(result);
+      setAnalyzedInput({ emotions: emotionsData, date });
     } catch (error) {
       console.error('Error during analysis:', error);
       setAnalysis('Wystąpił błąd podczas analizy emocji.');
+      setAnalyzedInput(null);
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   const handleDownload = () => {
-    if (!analysis) return;
+    if (!analysis || !analyzedInput) return;
 
-    const emotionsData = getEmotionsData();
-    const cseCode = generateCSECode(emotionsData);
-    const fileName = `${cseCode}.txt`;
+    const { code, text } = buildArchiveEntry({ ...analyzedInput, analysis });
+    const fileName = `${code}.txt`;
 
-    const content = `${cseCode}\n\n${analysis}`;
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
 
     const link = document.createElement('a');
@@ -207,8 +211,13 @@ const EmotionMixer = () => {
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gray-900 rounded font-mono border border-gray-800 flex-1">
                   <Activity className={power ? 'text-green-500' : 'text-gray-600'} />
-                  <span className={`${power ? 'text-green-500' : 'text-gray-600'} min-w-[140px] text-right`}>
-                    {getCurrentCSECode()}
+                  <span className={`${power ? 'text-green-500' : 'text-gray-600'} min-w-[140px] text-right text-sm sm:text-base`}>
+                    {/* łamanie wiersza tylko po myślnikach, nie w środku członu (AN05) */}
+                    {getCurrentCSECode().split('-').map((part, i, all) => (
+                      <React.Fragment key={i}>
+                        {part}{i < all.length - 1 && '-'}<wbr />
+                      </React.Fragment>
+                    ))}
                   </span>
                 </div>
                 {AI_ENABLED && (
@@ -232,13 +241,15 @@ const EmotionMixer = () => {
               <div className="bg-black/80 rounded-lg p-4 border border-gray-800 shadow-inner">
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="text-lg font-bold">Analiza ChatGPT:</h3>
-                  <button
-                    onClick={handleDownload}
-                    className="flex items-center gap-2 px-3 py-1 bg-gradient-to-b from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 rounded-lg transition-all shadow-lg border border-gray-600"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>Pobierz</span>
-                  </button>
+                  {analyzedInput && (
+                    <button
+                      onClick={handleDownload}
+                      className="flex items-center gap-2 px-3 py-1 bg-gradient-to-b from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 rounded-lg transition-all shadow-lg border border-gray-600"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Pobierz</span>
+                    </button>
+                  )}
                 </div>
                 <p className="text-gray-300 whitespace-pre-wrap">{analysis}</p>
               </div>

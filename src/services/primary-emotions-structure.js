@@ -9,10 +9,10 @@ const INTENSITY_RANGES = {
 export const primaryEmotions = {
   'AN': {
     name: 'Anticipation',
-    translation: 'Antycypacja',
+    translation: 'Oczekiwanie',
     variants: {
       'L': { name: 'Interest', translation: 'Zainteresowanie' },
-      'M': { name: 'Anticipation', translation: 'Antycypacja' },
+      'M': { name: 'Anticipation', translation: 'Oczekiwanie' },
       'H': { name: 'Vigilance', translation: 'Czujność' }
     }
   },
@@ -72,10 +72,10 @@ export const primaryEmotions = {
   },
   'AG': {
     name: 'Anger',
-    translation: 'Złość',
+    translation: 'Gniew',
     variants: {
       'L': { name: 'Annoyance', translation: 'Irytacja' },
-      'M': { name: 'Anger', translation: 'Złość' },
+      'M': { name: 'Anger', translation: 'Gniew' },
       'H': { name: 'Rage', translation: 'Wściekłość' }
     }
   }
